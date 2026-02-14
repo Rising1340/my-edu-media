@@ -3,3 +3,4 @@ pyotp
 qrcode
 werkzeug
 gunicorn
+Pillow

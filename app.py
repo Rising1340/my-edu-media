@@ -57,7 +57,8 @@ HTML_LAYOUT = """
 <html lang="ja">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>学習ライブラリ</title>
+    <meta name="google-site-verification" content="AvN-w3nxJ1uAhAyT4wvlIaqTYdCJCQTpwxtV6-pKcNA" />
+    <title>放課後の学び場</title>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script>mermaid.initialize({startOnLoad:true});</script>
@@ -77,7 +78,7 @@ HTML_LAYOUT = """
 </head>
 <body>
     <nav>
-        <a href="/" style="color:white; text-decoration:none; font-weight:bold; font-size:1.5rem;">学習ライブラリ</a>
+        <a href="/" style="color:white; text-decoration:none; font-weight:bold; font-size:1.5rem;">放課後の学び場</a>
         <div>{% if session.get('user_id') %}<a href="/logout" style="color:white; font-size:12px;">ログアウト</a>{% else %}<a href="/login" style="color:white; font-size:12px; opacity:0.5;">管理者</a>{% endif %}</div>
     </nav>
     <div class="main-container">{{ content | safe }}</div>
@@ -221,4 +222,5 @@ def ban_user(cid):
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
+
     app.run(host="0.0.0.0", port=port)

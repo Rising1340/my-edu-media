@@ -3,4 +3,5 @@ pyotp
 qrcode
 werkzeug
 gunicorn
-Pillow
+psycopg2-binary
+

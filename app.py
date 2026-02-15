@@ -74,7 +74,7 @@ def home():
     grid_html = '<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:1.5rem;">'
     for pid, title, cat, views in posts:
         color = CAT_COLORS.get(cat, "#777")
-        grid_html += f'<div onclick="location.href=\'/post/{pid}\'" class="card" style="border-top: 5px solid {color};"><small style="color:{color}; font-weight:bold;">{cat}</small><h3 style="margin:5px 0 15px 0;">{title}</h3><small style="color:#999; margin-top:auto;">👁 {views} views</small></div>'
+        grid_html += f'<div onclick="location.href=\'/post/{pid}\' " class="card" style="border-top: 5px solid {color};"><small style="color:{color}; font-weight:bold;">{cat}</small><h3 style="margin:5px 0 15px 0;">{title}</h3><small style="color:#999; margin-top:auto;">👁 {views} views</small></div>'
     return render_template_string(HTML_LAYOUT, site_title=SITE_TITLE, content=owner_msg + form_html + search_bar + grid_html + "</div>")
 
 @app.route("/post/<int:pid>", methods=["GET", "POST"])
@@ -96,6 +96,15 @@ def post_detail(pid):
         comment_html += f'<div style="border-bottom:1px solid #eee; padding:15px 0;"><strong>{c_name}</strong><p style="margin:5px 0;">{c_body}</p></div>'
     comment_html += '<form method="post" style="margin-top:2rem;"><input name="name" placeholder="名前" required><textarea name="body" placeholder="質問などはこちらへ" required></textarea><button class="btn">送信</button></form></div>'
     return render_template_string(HTML_LAYOUT, site_title=SITE_TITLE, content=f'<div class="article-wrap"><small style="color:{CAT_COLORS.get(p[2])}; font-weight:bold;">{p[2]}</small><h1>{p[0]}</h1>{AD_HTML}<div style="white-space: pre-wrap;">{processed_content}</div>{AD_HTML}{admin_tools}</div>{comment_html}')
+
+# --- 追加：削除機能 ---
+@app.route("/delete/<int:pid>")
+def delete_post(pid):
+    if not session.get('user_id'): return redirect("/login")
+    conn = get_db_connection(); c = conn.cursor()
+    c.execute("DELETE FROM posts WHERE id = %s", (pid,))
+    conn.commit(); c.close(); conn.close()
+    return redirect("/")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

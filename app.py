@@ -231,4 +231,17 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 
     app.run(host="0.0.0.0", port=port)
+@app.route("/sitemap.xml")
+def sitemap():
+    conn = sqlite3.connect("blog.db"); c = conn.cursor()
+    c.execute("SELECT id FROM posts")
+    posts = c.fetchall(); conn.close()
+    
+    xml = '<?xml version="1.0" encoding="UTF-8"?>'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+    xml += '<url><loc>https://my-edu-media.onrender.com/</loc><priority>1.0</priority></url>'
+    for p in posts:
+        xml += f'<url><loc>https://my-edu-media.onrender.com/post/{p[0]}</loc><priority>0.8</priority></url>'
+    xml += '</urlset>'
+    return xml, {'Content-Type': 'application/xml'}
 

@@ -177,10 +177,17 @@ def login():
         conn = sqlite3.connect("blog.db"); c = conn.cursor()
         c.execute("SELECT id, password, totp_secret FROM users WHERE username = ?", (u,))
         user = c.fetchone(); conn.close()
-        if user and check_password_hash(user[1], p) and pyotp.TOTP(user[2]).verify(t):
-            session['user_id'] = user[0]
-            return redirect("/")
-    return render_template_string(HTML_LAYOUT, content="<div class='article-wrap'><h2>管理者ログイン</h2><form method='post'><input name='u' placeholder='ユーザー名'><input type='password' name='p' placeholder='パスワード'><input name='t' placeholder='2FAコード'><input type='submit' class='btn' value='ログイン'></form></div>")
+        
+        # --- 2FAのチェックを環境変数で切り替えるように変更 ---
+        is_2fa_enabled = os.environ.get('ENABLE_2FA', 'True') == 'True'
+        
+        if user and check_password_hash(user[1], p):
+            if not is_2fa_enabled or pyotp.TOTP(user[2]).verify(t):
+                session['user_id'] = user[0]
+                return redirect("/")
+    
+    # 2FAが無効な場合は、入力欄を表示しないように工夫（任意）
+    return render_template_string(HTML_LAYOUT, content="<div class='article-wrap'><h2>管理者ログイン</h2><form method='post'><input name='u' placeholder='ユーザー名'><input type='password' name='p' placeholder='パスワード'><input name='t' placeholder='2FAコード（無効時は適当でOK）'><input type='submit' class='btn' value='ログイン'></form></div>")
 
 @app.route("/logout")
 def logout(): session.clear(); return redirect("/")
@@ -224,3 +231,4 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 
     app.run(host="0.0.0.0", port=port)
+

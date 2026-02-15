@@ -6,9 +6,11 @@ from psycopg2.extras import DictCursor
 app = Flask(__name__)
 app.secret_key = "ULTIMATE_FINAL_SECRET_2026"
 
+# サイト名の共通設定
+SITE_TITLE = "理系大学生の思考ノート"
+
 # --- データベース接続設定 ---
 def get_db_connection():
-    # RenderのEnvironmentに登録したDATABASE_URLを読み取ります
     conn = psycopg2.connect(os.environ.get('DATABASE_URL'), sslmode='require')
     return conn
 
@@ -50,7 +52,7 @@ def generate_toc(content):
     return content.replace("[目次]", toc_html + "</ul></div>")
 
 # --- レイアウト ---
-HTML_LAYOUT = """<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>学習ライブラリ</title><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>mermaid.initialize({startOnLoad:true});</script><style>:root { --main: #004d71; --bg: #f4f7f9; }body { font-family: sans-serif; background: var(--bg); color: #333; margin: 0; line-height: 1.7; }nav { background: var(--main); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }.main-container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }.owner-card { background: white; border-left: 5px solid var(--main); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }.article-wrap { background: white; border: 1px solid #e1e1e1; border-radius: 8px; padding: 2.5rem; margin-bottom: 2rem; }.btn { background: #0076a8; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; text-decoration: none; font-weight:bold; }input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 1rem; box-sizing: border-box; }.card { background: white; border: 1px solid #e1e1e1; border-radius: 8px; padding: 1.5rem; cursor: pointer; transition: 0.2s; min-height: 140px; display: flex; flex-direction: column; }.card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }.mermaid { background: white; padding: 10px; border: 1px solid #eee; border-radius: 8px; margin: 1rem 0; }</style></head><body><nav><a href="/" style="color:white; text-decoration:none; font-weight:bold; font-size:1.5rem;">学習ライブラリ</a><div>{% if session.get('user_id') %}<a href="/logout" style="color:white; font-size:12px;">ログアウト</a>{% else %}<a href="/login" style="color:white; font-size:12px; opacity:0.5;">管理者</a>{% endif %}</div></nav><div class="main-container">{{ content | safe }}</div></body></html>"""
+HTML_LAYOUT = """<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>{{ site_title }}</title><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>mermaid.initialize({startOnLoad:true});</script><style>:root { --main: #004d71; --bg: #f4f7f9; }body { font-family: sans-serif; background: var(--bg); color: #333; margin: 0; line-height: 1.7; }nav { background: var(--main); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }.main-container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }.owner-card { background: white; border-left: 5px solid var(--main); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }.article-wrap { background: white; border: 1px solid #e1e1e1; border-radius: 8px; padding: 2.5rem; margin-bottom: 2rem; }.btn { background: #0076a8; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; text-decoration: none; font-weight:bold; }input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 1rem; box-sizing: border-box; }.card { background: white; border: 1px solid #e1e1e1; border-radius: 8px; padding: 1.5rem; cursor: pointer; transition: 0.2s; min-height: 140px; display: flex; flex-direction: column; }.card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }.mermaid { background: white; padding: 10px; border: 1px solid #eee; border-radius: 8px; margin: 1rem 0; }</style></head><body><nav><a href="/" style="color:white; text-decoration:none; font-weight:bold; font-size:1.5rem;">{{ site_title }}</a><div>{% if session.get('user_id') %}<a href="/logout" style="color:white; font-size:12px;">ログアウト</a>{% else %}<a href="/login" style="color:white; font-size:12px; opacity:0.5;">管理者</a>{% endif %}</div></nav><div class="main-container">{{ content | safe }}</div></body></html>"""
 
 @app.route("/", methods=["GET", "POST"])
 def home():
@@ -73,7 +75,7 @@ def home():
     for pid, title, cat, views in posts:
         color = CAT_COLORS.get(cat, "#777")
         grid_html += f'<div onclick="location.href=\'/post/{pid}\'" class="card" style="border-top: 5px solid {color};"><small style="color:{color}; font-weight:bold;">{cat}</small><h3 style="margin:5px 0 15px 0;">{title}</h3><small style="color:#999; margin-top:auto;">👁 {views} views</small></div>'
-    return render_template_string(HTML_LAYOUT, content=owner_msg + form_html + search_bar + grid_html + "</div>")
+    return render_template_string(HTML_LAYOUT, site_title=SITE_TITLE, content=owner_msg + form_html + search_bar + grid_html + "</div>")
 
 @app.route("/post/<int:pid>", methods=["GET", "POST"])
 def post_detail(pid):
@@ -93,7 +95,7 @@ def post_detail(pid):
     for cid, c_name, c_body, c_ip in comments:
         comment_html += f'<div style="border-bottom:1px solid #eee; padding:15px 0;"><strong>{c_name}</strong><p style="margin:5px 0;">{c_body}</p></div>'
     comment_html += '<form method="post" style="margin-top:2rem;"><input name="name" placeholder="名前" required><textarea name="body" placeholder="質問などはこちらへ" required></textarea><button class="btn">送信</button></form></div>'
-    return render_template_string(HTML_LAYOUT, content=f'<div class="article-wrap"><small style="color:{CAT_COLORS.get(p[2])}; font-weight:bold;">{p[2]}</small><h1>{p[0]}</h1>{AD_HTML}<div style="white-space: pre-wrap;">{processed_content}</div>{AD_HTML}{admin_tools}</div>{comment_html}')
+    return render_template_string(HTML_LAYOUT, site_title=SITE_TITLE, content=f'<div class="article-wrap"><small style="color:{CAT_COLORS.get(p[2])}; font-weight:bold;">{p[2]}</small><h1>{p[0]}</h1>{AD_HTML}<div style="white-space: pre-wrap;">{processed_content}</div>{AD_HTML}{admin_tools}</div>{comment_html}')
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -104,7 +106,7 @@ def login():
         user = c.fetchone(); c.close(); conn.close()
         if user and check_password_hash(user[1], p):
             session['user_id'] = user[0]; return redirect("/")
-    return render_template_string(HTML_LAYOUT, content="<div class='article-wrap'><h2>管理者ログイン</h2><form method='post'><input name='u' placeholder='ユーザー名'><input type='password' name='p' placeholder='パスワード'><input type='submit' class='btn' value='ログイン'></form></div>")
+    return render_template_string(HTML_LAYOUT, site_title=SITE_TITLE, content="<div class='article-wrap'><h2>管理者ログイン</h2><form method='post'><input name='u' placeholder='ユーザー名'><input type='password' name='p' placeholder='パスワード'><input type='submit' class='btn' value='ログイン'></form></div>")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
